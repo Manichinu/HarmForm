@@ -11,6 +11,15 @@ import "@pnp/sp/attachments";
 import "@pnp/sp/presets/all";
 import { Web } from "@pnp/sp/webs";
 import NewForm from './NewForm';
+import 'datatables.net';
+import 'datatables.net-responsive';
+import 'datatables.net-buttons';
+import 'datatables.net-buttons/js/buttons.colVis.min';
+import 'datatables.net-buttons/js/dataTables.buttons.min';
+import 'datatables.net-buttons/js/buttons.flash.min';
+import 'datatables.net-buttons/js/buttons.html5.min';
+import * as $ from "jquery";
+import ViewForm from './ViewForm';
 
 
 var NewWeb: any;
@@ -22,6 +31,12 @@ export interface FormState {
   CurrentUserName: string;
   CurrentUserID: number;
   CurrentUserProfilePic: string;
+  DataTableItems: any[];
+  ApprovedStatusCount: number;
+  PendingStatusCount: number;
+  RejectedStatusCount: number;
+  ItemID: any;
+  ViewForm: boolean;
 }
 
 export default class Dashboard extends React.Component<IDashboardProps, FormState, {}> {
@@ -32,8 +47,13 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
       NewForm: false,
       CurrentUserName: "",
       CurrentUserID: 0,
-      CurrentUserProfilePic: ""
-
+      CurrentUserProfilePic: "",
+      DataTableItems: [],
+      ApprovedStatusCount: 0,
+      PendingStatusCount: 0,
+      RejectedStatusCount: 0,
+      ItemID: "",
+      ViewForm: false
     }
     NewWeb = Web("" + this.props.siteurl + "")
 
@@ -43,7 +63,17 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
     SPComponentLoader.loadCss(`${this.props.siteurl}/SiteAssets/HarmForm/css/mediastyle.css?v=2.9`);
   }
   public componentDidMount() {
+    const searchParams = new URLSearchParams(window.location.search);
+    const hasSessionID = searchParams.has("RequestId");
+    if (hasSessionID) {
+      this.setState({
+        Dashboard: false,
+        NewForm: false,
+        ViewForm: true
+      })
+    }
     this.GetCurrentUserDetails()
+    this.getTableItems()
   }
   public async GetCurrentUserDetails() {
     await NewWeb.currentUser.get().then((user: any) => {
@@ -62,7 +92,116 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
   public showNewForm() {
     this.setState({
       Dashboard: false,
-      NewForm: true
+      NewForm: true,
+      ViewForm: false
+    })
+  }
+  public async getTableItems() {
+    var PendingStatus = 0;
+    var ApprovedStatus = 0;
+    var RejectedStatus = 0;
+    try {
+      await NewWeb.lists.getByTitle("HarmForm Transaction").items.select("*")
+        .getAll()
+        .then((items: any) => {
+          // if (items.length != 0) {
+          for (let i = 0; i < items.length; i++) {
+            if (items[i].Status == "Pending") {
+              PendingStatus = PendingStatus + 1;
+            }
+            else if (items[i].Status == "Approved") {
+              ApprovedStatus = ApprovedStatus + 1;
+            }
+            else if (items[i].Status == "Rejected") {
+              RejectedStatus = RejectedStatus + 1;
+            }
+          }
+          this.setState({
+            DataTableItems: items,
+            PendingStatusCount: PendingStatus,
+            ApprovedStatusCount: ApprovedStatus,
+            RejectedStatusCount: RejectedStatus
+          })
+          setTimeout(() => {
+            $('#table-items').DataTable({
+              dom: 'Bfrtip',
+              pageLength: 10,
+              buttons: [
+
+                {
+                  exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
+                  }
+                },
+              ]
+            });
+            // this.loaddataTable();
+          }, 1000);
+          // }
+        });
+    } catch (err) {
+      console.log("HarmForm Transaction : " + err);
+    }
+  }
+  public async loaddataTable() {
+    // var sSearchtext = 'Search :';
+    var sInfotext = 'Showing _START_ to _END_ of _TOTAL_ entries';
+    var sZeroRecordsText = 'No data available in table';
+    var sinfoFilteredText = "(filtered from _MAX_ total records)";
+    // var placeholderkeyword = "Keyword";
+    var lengthMenutxt = "Show _MENU_ entries";
+    var firstpage = "First";
+    var Lastpage = "Last";
+    var Nextpage = "Next";
+    var Previouspage = "Previous";
+    $.extend($.fn.dataTable, {
+      responsive: true,
+    });
+    $("#table-items").DataTable({
+      // destroy:true,
+      lengthMenu: [[5, 10, 20, 50, 100, -1], [5, 10, 20, 50, 100, "All"]],
+      dom: 'Blfrtip',
+      "columnDefs": [{
+        orderable: false,
+        responsivePriority: 0,
+        target: 7,
+        targets: [6],
+      }
+      ],
+      buttons: [{
+        extend: 'csvHtml5',
+        text: `Export to <img class="excel_img" src='/excel.svg'/>`,
+        exportOptions: {
+          columns: [0, 1, 2, 3, 4, 5, 6]
+        }
+      }
+      ],
+      "info": true,
+      "pagingType": 'full_numbers',
+      "language": {
+        "infoEmpty": sInfotext,
+        "info": sInfotext,
+        "zeroRecords": sZeroRecordsText,
+        "infoFiltered": sinfoFilteredText,
+        "lengthMenu": lengthMenutxt,
+        "search": `<img class="search_img" src='/search (6).svg'/>`,
+        "searchPlaceholder": "Search",
+        "paginate": {
+          "first": firstpage,
+          "last": Lastpage,
+          "next": Nextpage,
+          "previous": Previouspage
+        }
+      }
+    });
+
+  }
+  public editItem(id: number) {
+    this.setState({
+      ItemID: id,
+      Dashboard: false,
+      NewForm: false,
+      ViewForm: true
     })
   }
   public render(): React.ReactElement<IDashboardProps> {
@@ -73,6 +212,20 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
     //   hasTeamsContext,
     //   userDisplayName
     // } = this.props;
+    var handler = this;
+    const TableItems = this.state.DataTableItems.map((item, key) => {
+      return (
+        <tr>
+          <td className="text-center">{key + 1}</td>
+          <td> {item.RequestID}</td>
+          <td> {item.InvolvedDepartment} </td>
+          <td> {item.Location}</td>
+          <td> {item.LevelofHarm} </td>
+          <td> {item.Status}</td>
+          <td className="text-center"> <a href="#"> <img onClick={() => handler.editItem(item.RequestID)} className="view_img" src={`${this.props.siteurl}/SiteAssets/HarmForm/img/view.svg`} alt="image" /> </a> </td>
+        </tr>
+      )
+    })
 
     return (
       <>
@@ -114,7 +267,7 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
                                 <img src={`${this.props.siteurl}/SiteAssets/HarmForm/img/Approved.svg`} alt="image" />
                               </div>
                               <div className="three-blocks-desc">
-                                <h3> 231 </h3>
+                                <h3> {this.state.ApprovedStatusCount} </h3>
                                 <p> Total Approved </p>
                               </div>
 
@@ -126,7 +279,7 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
                                 <img src={`${this.props.siteurl}/SiteAssets/HarmForm/img/pending.svg`} alt="image" />
                               </div>
                               <div className="three-blocks-desc">
-                                <h3> 05 </h3>
+                                <h3> {this.state.PendingStatusCount} </h3>
                                 <p> Total Pending </p>
                               </div>
 
@@ -138,7 +291,7 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
                                 <img src={`${this.props.siteurl}/SiteAssets/HarmForm/img/rejected.svg`} alt="image" />
                               </div>
                               <div className="three-blocks-desc">
-                                <h3> 02 </h3>
+                                <h3>{this.state.RejectedStatusCount} </h3>
                                 <p> Total Rejected </p>
                               </div>
                             </div>
@@ -151,7 +304,7 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
                             <input type="text" placeholder="Search" className="" />
                             <img src={`${this.props.siteurl}/SiteAssets/HarmForm/img/search (6).svg`} alt="image" />
                           </div>
-                          <div className="table-sort">
+                          {/* <div className="table-sort">
                             <ul>
                               <li> <span> Export to </span> <a href="#"> <img className="excel_img" src={`${this.props.siteurl}/SiteAssets/HarmForm/img/excel.svg`} /> </a></li>
                               <li> <span> Sort By </span>
@@ -160,64 +313,23 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
                                 </select>
                               </li>
                             </ul>
-                          </div>
+                          </div> */}
                         </div>
                         <div className="table-responsive">
-                          <table className="table etcc_dash_table">
+                          <table className="table etcc_dash_table" id='table-items'>
                             <thead>
                               <tr>
-                                <th className="s_no  text-center"> # </th>
-                                <th className="req_id"> Request id </th>
-                                <th className="entity_name"> Entity Name </th>
-                                <th className="emp_position"> Employee Position </th>
-                                <th className="date_req"> Date of request </th>
-                                <th className="type_info"> Type of information </th>
+                                <th className="s_no  text-center">S.No</th>
+                                <th className="req_id"> Request Id </th>
+                                <th className="entity_name">Involved Department</th>
+                                <th className="emp_position">Location</th>
+                                <th className="date_req">Level of Harm</th>
                                 <th className="text-center status"> Status  </th>
                                 <th className="text-center action_th"> Action  </th>
                               </tr>
                             </thead>
                             <tbody>
-                              <tr>
-                                <td className="text-center"> 1</td>
-                                <td> RQ2425 </td>
-                                <td> Lorem Ipsum </td>
-                                <td> Lorem Ipsum </td>
-                                <td> 11 Mar 2023 </td>
-                                <td> Lorem Ipsum </td>
-                                <td className="status approved text-center">  <span> Approved  </span> </td>
-                                <td className="text-center"> <a href="#"> <img className="view_img" src={`${this.props.siteurl}/SiteAssets/HarmForm/img/view.svg`} alt="image" /> </a> </td>
-                              </tr>
-                              <tr>
-                                <td className="text-center"> 2 </td>
-                                <td> RQ2425 </td>
-                                <td> Lorem Ipsum </td>
-                                <td> Lorem Ipsum </td>
-                                <td> 10 Mar 2023 </td>
-                                <td> Lorem Ipsum </td>
-                                <td className="status pending text-center">  <span> Pending  </span> </td>
-                                <td className="text-center"> <a href="#"> <img className="view_img" src={`${this.props.siteurl}/SiteAssets/HarmForm/img/view.svg`} alt="image" /> </a> </td>
-                              </tr>
-                              <tr>
-                                <td className="text-center"> 3 </td>
-                                <td> RQ2425 </td>
-                                <td> Lorem Ipsum </td>
-                                <td> Lorem Ipsum </td>
-                                <td> 9 Mar 2023 </td>
-                                <td> Lorem Ipsum </td>
-                                <td className="status pending text-center">  <span> Pending  </span> </td>
-                                <td className="text-center"> <a href="#"> <img className="view_img" src={`${this.props.siteurl}/SiteAssets/HarmForm/img/view.svg`} alt="image" /> </a> </td>
-                              </tr>
-                              <tr>
-                                <td className="text-center"> 4 </td>
-                                <td> RQ2425 </td>
-                                <td> Lorem Ipsum </td>
-                                <td> Lorem Ipsum </td>
-                                <td> 6 Mar 2023 </td>
-                                <td> Lorem Ipsum </td>
-                                <td className="status approved text-center">  <span> Approved  </span> </td>
-                                <td className="text-center"> <a href="#"> <img className="view_img" src={`${this.props.siteurl}/SiteAssets/HarmForm/img/view.svg`} alt="image" /> </a> </td>
-                              </tr>
-
+                              {TableItems}
                             </tbody>
                           </table>
                         </div>
@@ -231,9 +343,11 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
           </>
         }
         {this.state.NewForm == true &&
-          <NewForm siteurl={this.props.siteurl} />
+          <NewForm siteurl={this.props.siteurl} itemId={0} />
         }
-
+        {this.state.ViewForm == true &&
+          <ViewForm siteurl={this.props.siteurl} itemId={this.state.ItemID} />
+        }
       </>
     );
   }

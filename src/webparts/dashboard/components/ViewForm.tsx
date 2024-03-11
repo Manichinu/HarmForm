@@ -19,10 +19,11 @@ import swal from "sweetalert";
 
 var NewWeb: any;
 var RequestID: any;
-
+var SessionID: any;
+var ItemStatus: any
 export interface FormState {
     Dashboard: boolean;
-    NewForm: boolean;
+    ViewForm: boolean;
     CurrentUserName: string;
     CurrentUserID: number;
     CurrentUserProfilePic: string;
@@ -31,14 +32,15 @@ export interface FormState {
     Approvers: any[];
     LevelofHarm: string;
     isAnonymous: boolean;
+    WFDetails: any[];
 }
 
-export default class NewForm extends React.Component<IDashboardProps, FormState, {}> {
+export default class ViewForm extends React.Component<IDashboardProps, FormState, {}> {
     public constructor(props: IDashboardProps, state: FormState) {
         super(props);
         this.state = {
             Dashboard: false,
-            NewForm: true,
+            ViewForm: true,
             CurrentUserName: "",
             CurrentUserID: 0,
             CurrentUserProfilePic: "",
@@ -46,9 +48,11 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
             setSelectedDepartment: [],
             Approvers: [],
             LevelofHarm: "",
-            isAnonymous: false
+            isAnonymous: false,
+            WFDetails: []
         }
         NewWeb = Web("" + this.props.siteurl + "")
+        SessionID = this.props.itemId;
 
         SPComponentLoader.loadCss(`https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css`);
         SPComponentLoader.loadCss(`https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css`);
@@ -56,10 +60,15 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
         SPComponentLoader.loadCss(`${this.props.siteurl}/SiteAssets/HarmForm/css/mediastyle.css?v=2.9`);
     }
     public componentDidMount() {
+        const searchParams = new URLSearchParams(window.location.search);
+        const hasSessionID = searchParams.has("RequestId");
+        if (hasSessionID) {
+            SessionID = searchParams.get("RequestId");
+        }
         this.GetCurrentUserDetails()
         this.getDepartments()
-        this.getApproverDetails()
-        this.getTransactionListLength()
+
+
     }
     public async GetCurrentUserDetails() {
         await NewWeb.currentUser.get().then((user: any) => {
@@ -70,27 +79,66 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
                 CurrentUserProfilePic: `${this.props.siteurl}/_layouts/15/userphoto.aspx?size=L&username=${user.Email}`
 
             })
+            setTimeout(() => {
+                this.getItem()
+                this.getWFHistoryDetails()
+            }, 200)
         }, (errorResponse: any) => {
         }
         );
 
     }
-    public async getTransactionListLength() {
+    public async getItem() {
         try {
             await NewWeb.lists.getByTitle("HarmForm Transaction").items.select("*")
-                .top(1)
-                .orderBy("Id", false)
+                .filter(`RequestID eq '${SessionID}'`)
                 .get()
                 .then((items: any) => {
-                    if (items.length != 0) {
-                        var length = parseInt(items[0].ID) + 1
-                        RequestID = "SKMCA/F03-04-" + length + ""
-                    } else {
-                        RequestID = "SKMCA/F03-04-1"
-                    }
+                    console.log(items)
+                    $("#location").val(items[0].Location)
+                    $("#incident").val(items[0].DateofIncident)
+                    $("#date_quality").val(items[0].DateReportedtoQuality)
+                    // this.state.isAnonymous
+                    $("#reporter_name").val(items[0].ReporterName)
+                    // Department[0].Title
+                    // this.state.LevelofHarm
+                    $("#Communication").val(items[0].Communication)
+                    $("#Education").val(items[0].Education)
+                    $("#Environment").val(items[0].Environment)
+                    $("#Technology").val(items[0].Technology)
+                    $("#Procedures").val(items[0].Procedures)
+                    items[0].Anonymous == true ? $('#anonymous_yes').prop('checked', true) : $('#anonymous_no').prop('checked', true);
+                    items[0].LevelofHarm == "Reportable circumstances" ? $('#Reportable').prop('checked', true) : "";
+                    items[0].LevelofHarm == "Near miss" ? $('#Near').prop('checked', true) : "";
+                    items[0].LevelofHarm == "No harm" ? $('#Noharm').prop('checked', true) : "";
+                    items[0].LevelofHarm == "Resulted in harm" ? $('#Resulted').prop('checked', true) : "";
+                    items[0].LevelofHarm == "Sentinel Event" ? $('#Sentinel').prop('checked', true) : "";
+
+                    RequestID = items[0].RequestID;
+                    ItemStatus = items[0].Status
+                    const updatedSelectedDepartment = [{ id: items[0].InvolvedDepartment, Title: items[0].InvolvedDepartment }];
+                    this.setState({
+                        setSelectedDepartment: updatedSelectedDepartment,
+                    });
                 });
         } catch (err) {
             console.log("HarmForm Transaction : " + err);
+        }
+    }
+    public async getWFHistoryDetails() {
+        try {
+            await NewWeb.lists.getByTitle("HarmForm WF History").items.select("*", "AssignedTo/Title")
+                .expand("AssignedTo/Title")
+                .filter(`RequestID eq '${SessionID}'`)
+                .get()
+                .then((items: any) => {
+                    console.log("WF", items)
+                    this.setState({
+                        WFDetails: items
+                    })
+                });
+        } catch (err) {
+            console.log("HarmForm WF History: " + err);
         }
     }
     public async getDepartments() {
@@ -123,61 +171,7 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
         });
 
     };
-    public async getApproverDetails() {
-        try {
-            await NewWeb.lists.getByTitle("Harm Form Approver Master").items.select("*")
-                .get()
-                .then((items: any) => {
-                    var ApproverID: any[] = []
-                    if (items.length != 0) {
-                        console.log(items)
-                        items[0].Level1ApproverId.map((id: any) => {
-                            ApproverID.push(id)
-                        })
-                        this.setState({
-                            Approvers: ApproverID
-                        })
-                    }
-                });
-        } catch (err) {
-            console.log("Harm Form Approver Master : " + err);
-        }
-    }
-    public saveFormDetails() {
-        var Department = this.state.setSelectedDepartment
-        NewWeb.lists.getByTitle("HarmForm Transaction").items.add({
-            Location: $("#location").val(),
-            DateofIncident: $("#incident").val(),
-            DateReportedtoQuality: $("#date_quality").val(),
-            Anonymous: this.state.isAnonymous,
-            ReporterName: $("#reporter_name").val(),
-            InvolvedDepartment: Department[0].Title,
-            LevelofHarm: this.state.LevelofHarm,
-            Communication: $("#Communication").val(),
-            Education: $("#Education").val(),
-            Environment: $("#Environment").val(),
-            Technology: $("#Technology").val(),
-            Procedures: $("#Procedures").val(),
-            RequestID: RequestID
-        }).then(() => {
-            NewWeb.lists.getByTitle("HarmForm WF History").items.add({
-                Title: "Level1",
-                AssignedToId: {
-                    results: this.state.Approvers
-                },
-                AssignedById: this.state.CurrentUserID,
-                Status: "Pending",
-                RequestID: RequestID
-            })
-        }).then(() => {
-            swal({
-                text: "Submitted successfully!",
-                icon: "success",
-            }).then(() => {
-                location.reload();
-            })
-        })
-    }
+
     public anonymousTrue() {
         $("#reporter-section").show()
         this.setState({ isAnonymous: true })
@@ -186,6 +180,66 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
         $("#reporter-section").hide()
         this.setState({ isAnonymous: false })
     }
+    public async Approved() {
+        var TransactionID = await NewWeb.lists.getByTitle("HarmForm Transaction").items.select("*")
+            .filter(`RequestID eq '${SessionID}'`)
+            .get()
+            .then((items: any) => {
+                return items[0].ID
+            })
+        var WFID = await NewWeb.lists.getByTitle("HarmForm WF History").items.select("*")
+            .filter(`RequestID eq '${SessionID}'`)
+            .get()
+            .then((items: any) => {
+                return items[0].ID
+            })
+        NewWeb.lists.getByTitle("HarmForm Transaction").items.getById(TransactionID).update({
+            Status: "Approved"
+        }).then(() => {
+            NewWeb.lists.getByTitle("HarmForm WF History").items.getById(WFID).update({
+                Status: "Approved"
+            })
+        }).then(() => {
+            swal({
+                text: "Approved successfully!",
+                icon: "success",
+            }).then(() => {
+                location.reload();
+            })
+        })
+
+
+    }
+    public async Rejected() {
+        var TransactionID = await NewWeb.lists.getByTitle("HarmForm Transaction").items.select("*")
+            .filter(`RequestID eq '${SessionID}'`)
+            .get()
+            .then((items: any) => {
+                return items[0].ID
+            })
+        var WFID = await NewWeb.lists.getByTitle("HarmForm WF History").items.select("*")
+            .filter(`RequestID eq '${SessionID}'`)
+            .get()
+            .then((items: any) => {
+                return items[0].ID
+            })
+        NewWeb.lists.getByTitle("HarmForm Transaction").items.getById(TransactionID).update({
+            Status: "Rejected"
+        }).then(() => {
+            NewWeb.lists.getByTitle("HarmForm WF History").items.getById(WFID).update({
+                Status: "Rejected"
+            })
+        }).then(() => {
+            swal({
+                text: "Rejected successfully!",
+                icon: "success",
+            }).then(() => {
+                location.reload();
+            })
+        })
+
+    }
+
     public render(): React.ReactElement<IDashboardProps> {
         // const {
         //   description,
@@ -197,7 +251,7 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
 
         return (
             <>
-                {this.state.NewForm == true &&
+                {this.state.ViewForm == true &&
                     <>
                         <header>
                             <div className="container clearfix">
@@ -217,10 +271,14 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
                         </header>
                         <section>
                             <div className="container">
-                                <div className="dashboard-wrap-create">
+                                <div className="dashboard-wrap-create view_form_etcc">
                                     <div className="create-heading-block clearfix">
                                         <a href="#"> <img src={`${this.props.siteurl}/SiteAssets/HarmForm/img/next.svg`} />
                                             <span> Requestor Information Form </span> </a>
+                                        <ul>
+                                            <li className="number"> {RequestID} </li>
+                                            <li className="status pending"> {ItemStatus} </li>
+                                        </ul>
                                     </div>
                                     <div className="create_banner">
                                         <div className="create_details">
@@ -276,7 +334,7 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
                                                         <label htmlFor='Near'>Near miss</label>
                                                     </div>
                                                     <div className='self-section' onClick={() => this.setState({ LevelofHarm: "No harm" })}>
-                                                        <input type="radio" id='No harm' value="self" name="harm" autoComplete='off' className='training_booking'
+                                                        <input type="radio" id='Noharm' value="self" name="harm" autoComplete='off' className='training_booking'
                                                             placeholder="Training Name"
                                                         />
                                                         <label htmlFor='No harm'>No harm</label>
@@ -331,9 +389,40 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
                                             </div>
 
                                         </div>
+                                        <div className="create_details view_details_table">
+                                            <h2> Approver Details </h2>
+                                            <div className="approver_table">
+                                                <table className="table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="text-center">S.No</th>
+                                                            <th> Approver Level </th>
+                                                            <th> Approver Name </th>
+                                                            <th> RequestID </th>
+                                                            <th className="text-center"> Status </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {this.state.WFDetails.map((item, key) => {
+                                                            var titles = item.AssignedTo.map((obj: any) => obj.Title);
+                                                            return (
+                                                                <tr>
+                                                                    <td>{key + 1}</td>
+                                                                    <td>{item.Title}</td>
+                                                                    <td>{titles.join(",")}</td>
+                                                                    <td>{item.RequestID}</td>
+                                                                    <td>{item.Status}</td>
+                                                                </tr>
+                                                            )
+                                                        })}
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                         <div className="create_btn">
-                                            <button className="submit_btn" onClick={() => this.saveFormDetails()}> Submit </button>
-                                            <button className="cancel_btn" onClick={() => location.reload()}> Cancel </button>
+                                            <button className="submit_btn" onClick={() => this.Approved()} > Approve </button>
+                                            <button className="cancel_btn" onClick={() => this.Rejected()}> Reject </button>
                                         </div>
                                     </div>
                                 </div>

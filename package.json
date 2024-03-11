@@ -23,9 +23,12 @@
     "datatables.net": "^1.13.1",
     "datatables.net-buttons": "^2.3.3",
     "datatables.net-responsive": "^2.4.0",
+    "jquery": "^3.7.1",
+    "moment": "^2.30.1",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-dropdown-select": "^4.11.1",
+    "sweetalert": "^2.1.2",
     "tslib": "2.3.1"
   },
   "devDependencies": {
@@ -35,6 +38,7 @@
     "@microsoft/sp-build-web": "1.18.2",
     "@microsoft/sp-module-interfaces": "1.18.2",
     "@rushstack/eslint-config": "2.5.1",
+    "@types/jquery": "^3.5.29",
     "@types/react": "17.0.45",
     "@types/react-dom": "17.0.17",
     "@types/webpack-env": "~1.15.2",

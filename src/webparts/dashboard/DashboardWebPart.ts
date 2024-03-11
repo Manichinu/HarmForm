@@ -14,6 +14,7 @@ import { IDashboardProps } from './components/IDashboardProps';
 
 export interface IDashboardWebPartProps {
   description: string;
+  id: any;
 }
 
 export default class DashboardWebPart extends BaseClientSideWebPart<IDashboardWebPartProps> {
@@ -31,6 +32,8 @@ export default class DashboardWebPart extends BaseClientSideWebPart<IDashboardWe
         // hasTeamsContext: !!this.context.sdks.microsoftTeams,
         // userDisplayName: this.context.pageContext.user.displayName,
         siteurl: this.context.pageContext.web.absoluteUrl,
+        itemId: this.properties.id
+
 
       }
     );

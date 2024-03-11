@@ -5,4 +5,5 @@ export interface IDashboardProps {
   // hasTeamsContext: boolean;
   // userDisplayName: string;
   siteurl: string;
+  itemId: any;
 }
