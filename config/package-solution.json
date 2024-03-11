@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "harm-form-client-side-solution",
+    "id": "863bf6a3-70dc-4bb1-9fc4-641c9f715f33",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.18.2"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "HarmForm description"
+      },
+      "longDescription": {
+        "default": "HarmForm description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "harm-form Feature",
+        "description": "The feature that activates elements of the harm-form solution.",
+        "id": "e67fe8c5-65b8-4652-a26d-6ca47b9f2f8b",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/harm-form.sppkg"
+  }
+}

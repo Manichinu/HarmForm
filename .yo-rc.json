@@ -1,0 +1,21 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "18.18.0",
+    "sdksVersions": {
+      "@microsoft/microsoft-graph-client": "3.0.2",
+      "@microsoft/teams-js": "2.12.0"
+    },
+    "version": "1.18.2",
+    "libraryName": "harm-form",
+    "libraryId": "863bf6a3-70dc-4bb1-9fc4-641c9f715f33",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "HarmForm",
+    "solutionShortDescription": "HarmForm description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}
