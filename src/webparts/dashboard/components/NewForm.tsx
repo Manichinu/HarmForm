@@ -11,7 +11,7 @@ import "@pnp/sp/attachments";
 import "@pnp/sp/presets/all";
 import { Web } from "@pnp/sp/webs";
 import Dashboard from './Dashboard';
-import Select from "react-dropdown-select";
+// import Select from "react-dropdown-select";
 import * as $ from "jquery";
 import swal from "sweetalert";
 
@@ -31,6 +31,7 @@ export interface FormState {
     Approvers: any[];
     LevelofHarm: string;
     isAnonymous: boolean;
+    DepartmentOptions: any[];
 }
 
 export default class NewForm extends React.Component<IDashboardProps, FormState, {}> {
@@ -46,7 +47,8 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
             setSelectedDepartment: [],
             Approvers: [],
             LevelofHarm: "",
-            isAnonymous: false
+            isAnonymous: false,
+            DepartmentOptions: []
         }
         NewWeb = Web("" + this.props.siteurl + "")
 
@@ -104,7 +106,8 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
                             Department.push({ value: items[i].Title, label: items[i].Title })
                         }
                         this.setState({
-                            Departments: Department
+                            Departments: Department,
+                            DepartmentOptions: items
                         });
                     }
                 });
@@ -144,14 +147,14 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
         }
     }
     public saveFormDetails() {
-        var Department = this.state.setSelectedDepartment
+        // var Department = this.state.setSelectedDepartment
         NewWeb.lists.getByTitle("HarmForm Transaction").items.add({
             Location: $("#location").val(),
             DateofIncident: $("#incident").val(),
             DateReportedtoQuality: $("#date_quality").val(),
             Anonymous: this.state.isAnonymous,
             ReporterName: $("#reporter_name").val(),
-            InvolvedDepartment: Department[0].Title,
+            InvolvedDepartment: $("#department_name").val(),
             LevelofHarm: this.state.LevelofHarm,
             Communication: $("#Communication").val(),
             Education: $("#Education").val(),
@@ -219,12 +222,12 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
                             <div className="container">
                                 <div className="dashboard-wrap-create">
                                     <div className="create-heading-block clearfix">
-                                        <a href="#"> <img src={`${this.props.siteurl}/SiteAssets/HarmForm/img/next.svg`} />
-                                            <span> Requestor Information Form </span> </a>
+                                        <a href="https://remodigital.sharepoint.com/sites/Remo/RemoSolutions/DigitalForms/POC/SitePages/HarmForm.aspx?env=WebView"> <img src={`${this.props.siteurl}/SiteAssets/HarmForm/img/next.svg`} />
+                                            <span> Incident Classification Form </span> </a>
                                     </div>
                                     <div className="create_banner">
                                         <div className="create_details">
-                                            <h2> Details of the requesting entity </h2>
+                                            <h2>Details of Incident Classification </h2>
                                             <div className="row">
                                                 <div className="col-md-3">
                                                     <label> Location </label>
@@ -258,8 +261,16 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
                                             <div className="row">
                                                 <div className="col-md-3">
                                                     <label>Involved Department</label>
-                                                    <Select onChange={this.handleDepartmentChange} options={this.state.Departments}
-                                                        values={this.state.setSelectedDepartment} />
+                                                    {/* <Select onChange={this.handleDepartmentChange} options={this.state.Departments}
+                                                        values={this.state.setSelectedDepartment} /> */}
+                                                    <select className='form-control' id='department_name'>
+                                                        <option>--Select--</option>
+                                                        {this.state.DepartmentOptions.map((item) => {
+                                                            return (
+                                                                <option value={item.Title}>{item.Title}</option>
+                                                            )
+                                                        })}
+                                                    </select>
                                                 </div>
                                                 <div className="col-md-3">
                                                     <label>Level of Harm</label>
@@ -296,7 +307,7 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
                                                 </div>
                                                 <div className="col-md-3" id='reporter-section' style={{ display: "none" }}>
                                                     <label> Reporter Name </label>
-                                                    <input type="text" id="reporter_name" className="form-control" placeholder="Enter Reporter Name" />
+                                                    <input autoComplete='off' type="text" id="reporter_name" className="form-control" placeholder="Enter Reporter Name" />
                                                 </div>
                                             </div>
                                         </div>

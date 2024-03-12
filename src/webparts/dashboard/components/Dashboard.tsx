@@ -14,10 +14,12 @@ import NewForm from './NewForm';
 import 'datatables.net';
 import 'datatables.net-responsive';
 import 'datatables.net-buttons';
-import 'datatables.net-buttons/js/buttons.colVis.min';
-import 'datatables.net-buttons/js/dataTables.buttons.min';
-import 'datatables.net-buttons/js/buttons.flash.min';
-import 'datatables.net-buttons/js/buttons.html5.min';
+// import 'datatables.net-buttons/js/buttons.colVis.min';
+// import 'datatables.net-buttons/js/dataTables.buttons.min';
+// import 'datatables.net-buttons/js/buttons.flash.min';
+// import 'datatables.net-buttons/js/buttons.html5.min';
+// import "datatables.net-dt/css/jquery.dataTables.css";
+import "datatables.net-buttons-dt/css/buttons.dataTables.css";
 import * as $ from "jquery";
 import ViewForm from './ViewForm';
 
@@ -101,10 +103,15 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
     var ApprovedStatus = 0;
     var RejectedStatus = 0;
     try {
-      await NewWeb.lists.getByTitle("HarmForm Transaction").items.select("*")
+      await NewWeb.lists.getByTitle("HarmForm Transaction").items
+        .orderBy("Created", false)
         .getAll()
         .then((items: any) => {
-          // if (items.length != 0) {
+          const sortedItems: any = items.sort((a: any, b: any) => {
+            const dateA: any = new Date(a.Created);
+            const dateB: any = new Date(b.Created);
+            return dateB - dateA;
+          });
           for (let i = 0; i < items.length; i++) {
             if (items[i].Status == "Pending") {
               PendingStatus = PendingStatus + 1;
@@ -117,84 +124,60 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
             }
           }
           this.setState({
-            DataTableItems: items,
+            DataTableItems: sortedItems,
             PendingStatusCount: PendingStatus,
             ApprovedStatusCount: ApprovedStatus,
             RejectedStatusCount: RejectedStatus
           })
-          setTimeout(() => {
-            $('#table-items').DataTable({
-              dom: 'Bfrtip',
-              pageLength: 10,
-              buttons: [
+        }).then(() => {
+          // $('#table-items').DataTable({
+          //   dom: 'Bfrtip',
+          //   pageLength: 10,
+          //   buttons: [
 
-                {
-                  exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7]
-                  }
-                },
-              ]
-            });
-            // this.loaddataTable();
-          }, 1000);
-          // }
+          //     {
+          //       exportOptions: {
+          //         columns: [0, 1, 2, 3, 4, 5, 6, 7]
+          //       }
+          //     },
+          //   ]
+          // });
+          this.loadDataTable()
         });
     } catch (err) {
       console.log("HarmForm Transaction : " + err);
     }
   }
-  public async loaddataTable() {
-    // var sSearchtext = 'Search :';
-    var sInfotext = 'Showing _START_ to _END_ of _TOTAL_ entries';
-    var sZeroRecordsText = 'No data available in table';
-    var sinfoFilteredText = "(filtered from _MAX_ total records)";
-    // var placeholderkeyword = "Keyword";
-    var lengthMenutxt = "Show _MENU_ entries";
-    var firstpage = "First";
-    var Lastpage = "Last";
-    var Nextpage = "Next";
-    var Previouspage = "Previous";
-    $.extend($.fn.dataTable, {
-      responsive: true,
-    });
-    $("#table-items").DataTable({
-      // destroy:true,
-      lengthMenu: [[5, 10, 20, 50, 100, -1], [5, 10, 20, 50, 100, "All"]],
-      dom: 'Blfrtip',
-      "columnDefs": [{
-        orderable: false,
-        responsivePriority: 0,
-        target: 7,
-        targets: [6],
-      }
-      ],
-      buttons: [{
-        extend: 'csvHtml5',
-        text: `Export to <img class="excel_img" src='/excel.svg'/>`,
-        exportOptions: {
-          columns: [0, 1, 2, 3, 4, 5, 6]
-        }
-      }
-      ],
-      "info": true,
-      "pagingType": 'full_numbers',
-      "language": {
-        "infoEmpty": sInfotext,
-        "info": sInfotext,
-        "zeroRecords": sZeroRecordsText,
-        "infoFiltered": sinfoFilteredText,
-        "lengthMenu": lengthMenutxt,
-        "search": `<img class="search_img" src='/search (6).svg'/>`,
-        "searchPlaceholder": "Search",
-        "paginate": {
-          "first": firstpage,
-          "last": Lastpage,
-          "next": Nextpage,
-          "previous": Previouspage
-        }
-      }
-    });
+  public loadDataTable() {
+    $.fn.dataTable.ext.errMode = "none";
 
+    $("#table-items").DataTable({
+      ordering: false,
+      pageLength: 5,
+      lengthMenu: [
+        [5, 10, 20, 50, 100, -1],
+        [5, 10, 20, 50, 100, "All"],
+      ],
+      dom: "Blfrtip",
+      // buttons: [
+      //   {
+      //     extend: "csvHtml5",
+      //     text: "Export to Excel",
+      //     header: true,
+      //     init: function (dt, node, config) {
+      //       // Add icon and tooltip to the button
+      //       $(node)
+
+      //         .addClass("btn-excel")
+      //         .html('<span>Export to </span> <img src="https://etccgov.sharepoint.com/sites/MOURequest/SiteAssets/ETCC/IMAGES/img/excel.svg" alt="Excel">')
+      //         .attr("title", "Export to CSV");
+      //     },
+      //     exportOptions: {
+      //       columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      //     },
+      //   },
+      // ],
+    });
   }
   public editItem(id: number) {
     this.setState({
@@ -251,9 +234,9 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
               <div className="container">
                 <div className="dashboard-wrap">
                   <div className="heading-block clearfix">
-                    <h2> Dashboard </h2>
+                    <h2> Classification and Level of Harm Dashboard </h2>
                     <ul className="req_info_btn">
-                      <li onClick={() => this.showNewForm()}> <a href="#"> Requestor Information </a></li>
+                      <li onClick={() => this.showNewForm()}> <a href="#"> Create Incident Classification </a></li>
                     </ul>
                   </div>
 
@@ -299,12 +282,12 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
                         </div>
                       </div>
                       <div className="table-wrap">
-                        <div className="table-search-wrap clearfix">
-                          <div className="table-search relative">
+                        {/*  <div className="table-search-wrap clearfix">
+                             <div className="table-search relative">
                             <input type="text" placeholder="Search" className="" />
                             <img src={`${this.props.siteurl}/SiteAssets/HarmForm/img/search (6).svg`} alt="image" />
                           </div>
-                          {/* <div className="table-sort">
+                           <div className="table-sort">
                             <ul>
                               <li> <span> Export to </span> <a href="#"> <img className="excel_img" src={`${this.props.siteurl}/SiteAssets/HarmForm/img/excel.svg`} /> </a></li>
                               <li> <span> Sort By </span>
@@ -313,8 +296,8 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
                                 </select>
                               </li>
                             </ul>
-                          </div> */}
-                        </div>
+                          </div> 
+                        </div>   */}
                         <div className="table-responsive">
                           <table className="table etcc_dash_table" id='table-items'>
                             <thead>

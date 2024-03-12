@@ -11,9 +11,10 @@ import "@pnp/sp/attachments";
 import "@pnp/sp/presets/all";
 import { Web } from "@pnp/sp/webs";
 import Dashboard from './Dashboard';
-import Select from "react-dropdown-select";
+// import Select from "react-dropdown-select";
 import * as $ from "jquery";
 import swal from "sweetalert";
+import * as moment from "moment";
 
 
 
@@ -33,6 +34,9 @@ export interface FormState {
     LevelofHarm: string;
     isAnonymous: boolean;
     WFDetails: any[];
+    CurrentStatus: string;
+    DepartmentOptions: any[];
+
 }
 
 export default class ViewForm extends React.Component<IDashboardProps, FormState, {}> {
@@ -49,7 +53,9 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
             Approvers: [],
             LevelofHarm: "",
             isAnonymous: false,
-            WFDetails: []
+            WFDetails: [],
+            CurrentStatus: "",
+            DepartmentOptions: []
         }
         NewWeb = Web("" + this.props.siteurl + "")
         SessionID = this.props.itemId;
@@ -67,8 +73,6 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
         }
         this.GetCurrentUserDetails()
         this.getDepartments()
-
-
     }
     public async GetCurrentUserDetails() {
         await NewWeb.currentUser.get().then((user: any) => {
@@ -82,6 +86,9 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
             setTimeout(() => {
                 this.getItem()
                 this.getWFHistoryDetails()
+                $("input").prop("disabled", true);
+                $("textarea").prop("disabled", true);
+                $("select").prop("disabled", true)
             }, 200)
         }, (errorResponse: any) => {
         }
@@ -98,28 +105,25 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                     $("#location").val(items[0].Location)
                     $("#incident").val(items[0].DateofIncident)
                     $("#date_quality").val(items[0].DateReportedtoQuality)
-                    // this.state.isAnonymous
                     $("#reporter_name").val(items[0].ReporterName)
-                    // Department[0].Title
-                    // this.state.LevelofHarm
                     $("#Communication").val(items[0].Communication)
                     $("#Education").val(items[0].Education)
                     $("#Environment").val(items[0].Environment)
                     $("#Technology").val(items[0].Technology)
                     $("#Procedures").val(items[0].Procedures)
+                    $("#department_name").val(items[0].InvolvedDepartment)
+                    $("input[value='" + items[0].LevelofHarm + "']").prop('checked', true);
                     items[0].Anonymous == true ? $('#anonymous_yes').prop('checked', true) : $('#anonymous_no').prop('checked', true);
-                    items[0].LevelofHarm == "Reportable circumstances" ? $('#Reportable').prop('checked', true) : "";
-                    items[0].LevelofHarm == "Near miss" ? $('#Near').prop('checked', true) : "";
-                    items[0].LevelofHarm == "No harm" ? $('#Noharm').prop('checked', true) : "";
-                    items[0].LevelofHarm == "Resulted in harm" ? $('#Resulted').prop('checked', true) : "";
-                    items[0].LevelofHarm == "Sentinel Event" ? $('#Sentinel').prop('checked', true) : "";
-
                     RequestID = items[0].RequestID;
                     ItemStatus = items[0].Status
+                    this.setState({ CurrentStatus: ItemStatus })
                     const updatedSelectedDepartment = [{ id: items[0].InvolvedDepartment, Title: items[0].InvolvedDepartment }];
                     this.setState({
                         setSelectedDepartment: updatedSelectedDepartment,
                     });
+                    if (items[0].Anonymous == true) {
+                        $("#reporter-section").show()
+                    }
                 });
         } catch (err) {
             console.log("HarmForm Transaction : " + err);
@@ -152,7 +156,8 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                             Department.push({ value: items[i].Title, label: items[i].Title })
                         }
                         this.setState({
-                            Departments: Department
+                            Departments: Department,
+                            DepartmentOptions: items
                         });
                     }
                 });
@@ -171,7 +176,6 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
         });
 
     };
-
     public anonymousTrue() {
         $("#reporter-section").show()
         this.setState({ isAnonymous: true })
@@ -197,14 +201,15 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
             Status: "Approved"
         }).then(() => {
             NewWeb.lists.getByTitle("HarmForm WF History").items.getById(WFID).update({
-                Status: "Approved"
+                Status: "Approved",
+                ActionTakenOn: moment().format("DD-MM-YYYY hh:mm A")
             })
         }).then(() => {
             swal({
                 text: "Approved successfully!",
                 icon: "success",
             }).then(() => {
-                location.reload();
+                window.open("https://remodigital.sharepoint.com/sites/Remo/RemoSolutions/DigitalForms/POC/SitePages/HarmForm.aspx?env=WebView", "_self")
             })
         })
 
@@ -227,14 +232,15 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
             Status: "Rejected"
         }).then(() => {
             NewWeb.lists.getByTitle("HarmForm WF History").items.getById(WFID).update({
-                Status: "Rejected"
+                Status: "Rejected",
+                ActionTakenOn: moment().format("DD-MM-YYYY hh:mm A")
             })
         }).then(() => {
             swal({
                 text: "Rejected successfully!",
                 icon: "success",
             }).then(() => {
-                location.reload();
+                window.open("https://remodigital.sharepoint.com/sites/Remo/RemoSolutions/DigitalForms/POC/SitePages/HarmForm.aspx?env=WebView", "_self")
             })
         })
 
@@ -273,8 +279,8 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                             <div className="container">
                                 <div className="dashboard-wrap-create view_form_etcc">
                                     <div className="create-heading-block clearfix">
-                                        <a href="#"> <img src={`${this.props.siteurl}/SiteAssets/HarmForm/img/next.svg`} />
-                                            <span> Requestor Information Form </span> </a>
+                                        <a href="https://remodigital.sharepoint.com/sites/Remo/RemoSolutions/DigitalForms/POC/SitePages/HarmForm.aspx?env=WebView"> <img src={`${this.props.siteurl}/SiteAssets/HarmForm/img/next.svg`} />
+                                            <span> Incident Classification Form </span> </a>
                                         <ul>
                                             <li className="number"> {RequestID} </li>
                                             <li className="status pending"> {ItemStatus} </li>
@@ -282,7 +288,7 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                     </div>
                                     <div className="create_banner">
                                         <div className="create_details">
-                                            <h2> Details of the requesting entity </h2>
+                                            <h2> Details of Incident Classification</h2>
                                             <div className="row">
                                                 <div className="col-md-3">
                                                     <label> Location </label>
@@ -316,37 +322,45 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                             <div className="row">
                                                 <div className="col-md-3">
                                                     <label>Involved Department</label>
-                                                    <Select onChange={this.handleDepartmentChange} options={this.state.Departments}
-                                                        values={this.state.setSelectedDepartment} />
+                                                    {/* <Select onChange={this.handleDepartmentChange} options={this.state.Departments}
+                                                        values={this.state.setSelectedDepartment} /> */}
+                                                    <select className='form-control' id='department_name'>
+                                                        <option>--Select--</option>
+                                                        {this.state.DepartmentOptions.map((item) => {
+                                                            return (
+                                                                <option value={item.Title}>{item.Title}</option>
+                                                            )
+                                                        })}
+                                                    </select>
                                                 </div>
                                                 <div className="col-md-3">
                                                     <label>Level of Harm</label>
                                                     <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Reportable circumstances" })}>
-                                                        <input type="radio" id='Reportable' value="self" name="harm" autoComplete='off' className='training_booking'
+                                                        <input type="radio" id='Reportable' value="Reportable circumstances" name="harm" autoComplete='off' className='training_booking'
                                                             placeholder="Training Name"
                                                         />
                                                         <label htmlFor='Reportable'>Reportable circumstances</label>
                                                     </div>
                                                     <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Near miss" })}>
-                                                        <input type="radio" id='Near' value="self" name="harm" autoComplete='off' className='training_booking'
+                                                        <input type="radio" id='Near' value="Near miss" name="harm" autoComplete='off' className='training_booking'
                                                             placeholder="Training Name"
                                                         />
                                                         <label htmlFor='Near'>Near miss</label>
                                                     </div>
                                                     <div className='self-section' onClick={() => this.setState({ LevelofHarm: "No harm" })}>
-                                                        <input type="radio" id='Noharm' value="self" name="harm" autoComplete='off' className='training_booking'
+                                                        <input type="radio" id='Noharm' value="No harm" name="harm" autoComplete='off' className='training_booking'
                                                             placeholder="Training Name"
                                                         />
                                                         <label htmlFor='No harm'>No harm</label>
                                                     </div>
                                                     <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Resulted in harm" })}>
-                                                        <input type="radio" id='Resulted' value="self" name="harm" autoComplete='off' className='training_booking'
+                                                        <input type="radio" id='Resulted' value="Resulted in harm" name="harm" autoComplete='off' className='training_booking'
                                                             placeholder="Training Name"
                                                         />
                                                         <label htmlFor='Resulted'>Resulted in harm</label>
                                                     </div>
                                                     <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Sentinel Event" })}>
-                                                        <input type="radio" id='Sentinel' value="self" name="harm" autoComplete='off' className='training_booking'
+                                                        <input type="radio" id='Sentinel' value="Sentinel Event" name="harm" autoComplete='off' className='training_booking'
                                                             placeholder="Training Name"
                                                         />
                                                         <label htmlFor='Sentinel'>Sentinel Event</label>
@@ -396,8 +410,10 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                                     <thead>
                                                         <tr>
                                                             <th className="text-center">S.No</th>
+                                                            <th>Assigned On</th>
                                                             <th> Approver Level </th>
                                                             <th> Approver Name </th>
+                                                            <th>Action Taken On</th>
                                                             <th> RequestID </th>
                                                             <th className="text-center"> Status </th>
                                                         </tr>
@@ -408,8 +424,10 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                                             return (
                                                                 <tr>
                                                                     <td>{key + 1}</td>
+                                                                    <td>{moment(item.Created).format("DD-MM-YYYY hh:mm A")}</td>
                                                                     <td>{item.Title}</td>
                                                                     <td>{titles.join(",")}</td>
+                                                                    <td>{item.ActionTakenOn == null || undefined || "" ? "-" : item.ActionTakenOn}</td>
                                                                     <td>{item.RequestID}</td>
                                                                     <td>{item.Status}</td>
                                                                 </tr>
@@ -420,10 +438,12 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                                 </table>
                                             </div>
                                         </div>
-                                        <div className="create_btn">
-                                            <button className="submit_btn" onClick={() => this.Approved()} > Approve </button>
-                                            <button className="cancel_btn" onClick={() => this.Rejected()}> Reject </button>
-                                        </div>
+                                        {this.state.CurrentStatus == "Pending" &&
+                                            <div className="create_btn">
+                                                <button className="submit_btn" onClick={() => this.Approved()} > Approve </button>
+                                                <button className="cancel_btn" onClick={() => this.Rejected()}> Reject </button>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             </div>
