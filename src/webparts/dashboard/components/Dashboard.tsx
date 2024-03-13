@@ -204,7 +204,15 @@ export default class Dashboard extends React.Component<IDashboardProps, FormStat
           <td> {item.InvolvedDepartment} </td>
           <td> {item.Location}</td>
           <td> {item.LevelofHarm} </td>
-          <td> {item.Status}</td>
+          {item.Status == "Approved" ?
+            <td className='text-center sts-Approved'><span> {item.Status}</span></td>
+            :
+            item.Status == "Rejected" ?
+              <td className='text-center sts-Rejected'><span> {item.Status}</span></td>
+              :
+              <td className='text-center sts-Pending'><span> {item.Status}</span></td>
+          }
+
           <td className="text-center"> <a href="#"> <img onClick={() => handler.editItem(item.RequestID)} className="view_img" src={`${this.props.siteurl}/SiteAssets/HarmForm/img/view.svg`} alt="image" /> </a> </td>
         </tr>
       )

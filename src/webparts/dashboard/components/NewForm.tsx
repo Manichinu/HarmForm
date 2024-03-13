@@ -242,19 +242,21 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
                                                     <label> Date Reported to Quality </label>
                                                     <input type="datetime-local" id="date_quality" className="form-control" placeholder="Enter loaction" />
                                                 </div>
-                                                <div className="col-md-3">
+                                                <div className="col-md-3 level-of-harm-wrapper">
                                                     <label> Anonymous </label>
-                                                    <div className='self-section' onClick={() => this.anonymousTrue()}>
-                                                        <input type="radio" id='anonymous_yes' value="self" name="anonymous" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='anonymous_yes'>Yes</label>
-                                                    </div>
-                                                    <div className='Other-section' onClick={() => this.anonymousFalse()} >
-                                                        <input type="radio" value="other" id='anonymous_no' name="anonymous" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='anonymous_no'>No</label>
+                                                    <div className='anonymous-section'>
+                                                        <div className='self-section' onClick={() => this.anonymousTrue()}>
+                                                            <input type="radio" id='anonymous_yes' value="self" name="anonymous" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='anonymous_yes'>Yes</label>
+                                                        </div>
+                                                        <div className='Other-section' onClick={() => this.anonymousFalse()} >
+                                                            <input type="radio" value="other" id='anonymous_no' name="anonymous" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='anonymous_no'>No</label>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -264,7 +266,7 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
                                                     {/* <Select onChange={this.handleDepartmentChange} options={this.state.Departments}
                                                         values={this.state.setSelectedDepartment} /> */}
                                                     <select className='form-control' id='department_name'>
-                                                        <option>--Select--</option>
+                                                        <option value="">--Select--</option>
                                                         {this.state.DepartmentOptions.map((item) => {
                                                             return (
                                                                 <option value={item.Title}>{item.Title}</option>
@@ -272,37 +274,39 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
                                                         })}
                                                     </select>
                                                 </div>
-                                                <div className="col-md-3">
+                                                <div className="col-md-6 level-of-harm-wrapper">
                                                     <label>Level of Harm</label>
-                                                    <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Reportable circumstances" })}>
-                                                        <input type="radio" id='Reportable' value="self" name="harm" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='Reportable'>Reportable circumstances</label>
-                                                    </div>
-                                                    <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Near miss" })}>
-                                                        <input type="radio" id='Near' value="self" name="harm" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='Near'>Near miss</label>
-                                                    </div>
-                                                    <div className='self-section' onClick={() => this.setState({ LevelofHarm: "No harm" })}>
-                                                        <input type="radio" id='No harm' value="self" name="harm" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='No harm'>No harm</label>
-                                                    </div>
-                                                    <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Resulted in harm" })}>
-                                                        <input type="radio" id='Resulted' value="self" name="harm" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='Resulted'>Resulted in harm</label>
-                                                    </div>
-                                                    <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Sentinel Event" })}>
-                                                        <input type="radio" id='Sentinel' value="self" name="harm" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='Sentinel'>Sentinel Event</label>
+                                                    <div className='levelofharm-section'>
+                                                        <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Reportable circumstances" })}>
+                                                            <input type="radio" id='Reportable' value="self" name="harm" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='Reportable'>Reportable circumstances</label>
+                                                        </div>
+                                                        <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Near miss" })}>
+                                                            <input type="radio" id='Near' value="self" name="harm" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='Near'>Near miss</label>
+                                                        </div>
+                                                        <div className='self-section' onClick={() => this.setState({ LevelofHarm: "No harm" })}>
+                                                            <input type="radio" id='No harm' value="self" name="harm" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='No harm'>No harm</label>
+                                                        </div>
+                                                        <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Resulted in harm" })}>
+                                                            <input type="radio" id='Resulted' value="self" name="harm" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='Resulted'>Resulted in harm</label>
+                                                        </div>
+                                                        <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Sentinel Event" })}>
+                                                            <input type="radio" id='Sentinel' value="self" name="harm" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='Sentinel'>Sentinel Event</label>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div className="col-md-3" id='reporter-section' style={{ display: "none" }}>

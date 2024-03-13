@@ -283,7 +283,7 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                             <span> Incident Classification Form </span> </a>
                                         <ul>
                                             <li className="number"> {RequestID} </li>
-                                            <li className="status pending"> {ItemStatus} </li>
+                                            <li className={this.state.CurrentStatus == "Pending" ? "sts-Pending" : this.state.CurrentStatus == "Approved" ? "sts-Approved" : this.state.CurrentStatus == "Rejected" ? "sts-Rejected" : ""}><span> {ItemStatus}</span> </li>
                                         </ul>
                                     </div>
                                     <div className="create_banner">
@@ -303,7 +303,7 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                                     <label> Date Reported to Quality </label>
                                                     <input type="datetime-local" id="date_quality" className="form-control" placeholder="Enter loaction" />
                                                 </div>
-                                                <div className="col-md-3">
+                                                <div className="col-md-3 level-of-harm-wrapper">
                                                     <label> Anonymous </label>
                                                     <div className='self-section' onClick={() => this.anonymousTrue()}>
                                                         <input type="radio" id='anonymous_yes' value="self" name="anonymous" autoComplete='off' className='training_booking'
@@ -333,7 +333,7 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                                         })}
                                                     </select>
                                                 </div>
-                                                <div className="col-md-3">
+                                                <div className="col-md-6 level-of-harm-wrapper">
                                                     <label>Level of Harm</label>
                                                     <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Reportable circumstances" })}>
                                                         <input type="radio" id='Reportable' value="Reportable circumstances" name="harm" autoComplete='off' className='training_booking'
@@ -423,13 +423,13 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                                             var titles = item.AssignedTo.map((obj: any) => obj.Title);
                                                             return (
                                                                 <tr>
-                                                                    <td>{key + 1}</td>
+                                                                    <td className='text-center'>{key + 1}</td>
                                                                     <td>{moment(item.Created).format("DD-MM-YYYY hh:mm A")}</td>
                                                                     <td>{item.Title}</td>
                                                                     <td>{titles.join(",")}</td>
                                                                     <td>{item.ActionTakenOn == null || undefined || "" ? "-" : item.ActionTakenOn}</td>
                                                                     <td>{item.RequestID}</td>
-                                                                    <td>{item.Status}</td>
+                                                                    <td className={item.Status == "Approved" ? "text-center sts-Approved" : item.Status == "Rejected" ? "text-center sts-Rejected" : "text-center sts-Pending"}><span>{item.Status}</span></td>
                                                                 </tr>
                                                             )
                                                         })}
@@ -440,8 +440,8 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                         </div>
                                         {this.state.CurrentStatus == "Pending" &&
                                             <div className="create_btn">
-                                                <button className="submit_btn" onClick={() => this.Approved()} > Approve </button>
-                                                <button className="cancel_btn" onClick={() => this.Rejected()}> Reject </button>
+                                                <button className="submit_btn approve-btn" onClick={() => this.Approved()} > Approve </button>
+                                                <button className="cancel_btn reject-btn" onClick={() => this.Rejected()}> Reject </button>
                                             </div>
                                         }
                                     </div>
