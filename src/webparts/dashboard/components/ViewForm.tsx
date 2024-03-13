@@ -305,17 +305,19 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                                 </div>
                                                 <div className="col-md-3 level-of-harm-wrapper">
                                                     <label> Anonymous </label>
-                                                    <div className='self-section' onClick={() => this.anonymousTrue()}>
-                                                        <input type="radio" id='anonymous_yes' value="self" name="anonymous" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='anonymous_yes'>Yes</label>
-                                                    </div>
-                                                    <div className='Other-section' onClick={() => this.anonymousFalse()} >
-                                                        <input type="radio" value="other" id='anonymous_no' name="anonymous" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='anonymous_no'>No</label>
+                                                    <div className='anonymous-section'>
+                                                        <div className='self-section' onClick={() => this.anonymousTrue()}>
+                                                            <input type="radio" id='anonymous_yes' value="self" name="anonymous" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='anonymous_yes'>Yes</label>
+                                                        </div>
+                                                        <div className='Other-section' onClick={() => this.anonymousFalse()} >
+                                                            <input type="radio" value="other" id='anonymous_no' name="anonymous" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='anonymous_no'>No</label>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -335,35 +337,37 @@ export default class ViewForm extends React.Component<IDashboardProps, FormState
                                                 </div>
                                                 <div className="col-md-6 level-of-harm-wrapper">
                                                     <label>Level of Harm</label>
-                                                    <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Reportable circumstances" })}>
-                                                        <input type="radio" id='Reportable' value="Reportable circumstances" name="harm" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='Reportable'>Reportable circumstances</label>
-                                                    </div>
-                                                    <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Near miss" })}>
-                                                        <input type="radio" id='Near' value="Near miss" name="harm" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='Near'>Near miss</label>
-                                                    </div>
-                                                    <div className='self-section' onClick={() => this.setState({ LevelofHarm: "No harm" })}>
-                                                        <input type="radio" id='Noharm' value="No harm" name="harm" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='No harm'>No harm</label>
-                                                    </div>
-                                                    <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Resulted in harm" })}>
-                                                        <input type="radio" id='Resulted' value="Resulted in harm" name="harm" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='Resulted'>Resulted in harm</label>
-                                                    </div>
-                                                    <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Sentinel Event" })}>
-                                                        <input type="radio" id='Sentinel' value="Sentinel Event" name="harm" autoComplete='off' className='training_booking'
-                                                            placeholder="Training Name"
-                                                        />
-                                                        <label htmlFor='Sentinel'>Sentinel Event</label>
+                                                    <div className='levelofharm-section'>
+                                                        <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Reportable circumstances" })}>
+                                                            <input type="radio" id='Reportable' value="Reportable circumstances" name="harm" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='Reportable'>Reportable circumstances</label>
+                                                        </div>
+                                                        <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Near miss" })}>
+                                                            <input type="radio" id='Near' value="Near miss" name="harm" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='Near'>Near miss</label>
+                                                        </div>
+                                                        <div className='self-section' onClick={() => this.setState({ LevelofHarm: "No harm" })}>
+                                                            <input type="radio" id='Noharm' value="No harm" name="harm" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='No harm'>No harm</label>
+                                                        </div>
+                                                        <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Resulted in harm" })}>
+                                                            <input type="radio" id='Resulted' value="Resulted in harm" name="harm" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='Resulted'>Resulted in harm</label>
+                                                        </div>
+                                                        <div className='self-section' onClick={() => this.setState({ LevelofHarm: "Sentinel Event" })}>
+                                                            <input type="radio" id='Sentinel' value="Sentinel Event" name="harm" autoComplete='off' className='training_booking'
+                                                                placeholder="Training Name"
+                                                            />
+                                                            <label htmlFor='Sentinel'>Sentinel Event</label>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div className="col-md-3" id='reporter-section' style={{ display: "none" }}>
