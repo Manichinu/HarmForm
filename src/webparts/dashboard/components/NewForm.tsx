@@ -80,9 +80,8 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
     public async getTransactionListLength() {
         try {
             await NewWeb.lists.getByTitle("HarmForm Transaction").items.select("*")
-                .top(1)
                 .orderBy("Created", false)
-                .get()
+                .getAll()
                 .then((items: any) => {
                     const sortedItems: any = items.sort((a: any, b: any) => {
                         const dateA: any = new Date(a.Created);
