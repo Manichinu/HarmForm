@@ -81,11 +81,16 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
         try {
             await NewWeb.lists.getByTitle("HarmForm Transaction").items.select("*")
                 .top(1)
-                .orderBy("Id", false)
+                .orderBy("Created", false)
                 .get()
                 .then((items: any) => {
+                    const sortedItems: any = items.sort((a: any, b: any) => {
+                        const dateA: any = new Date(a.Created);
+                        const dateB: any = new Date(b.Created);
+                        return dateB - dateA;
+                    });
                     if (items.length != 0) {
-                        var length = parseInt(items[0].ID) + 1
+                        var length = parseInt(sortedItems[0].ID) + 1
                         RequestID = "SKMCA/F03-04-" + length + ""
                     } else {
                         RequestID = "SKMCA/F03-04-1"
