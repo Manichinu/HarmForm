@@ -61,7 +61,6 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
         this.GetCurrentUserDetails()
         this.getDepartments()
         this.getApproverDetails()
-        this.getTransactionListLength()
     }
     public async GetCurrentUserDetails() {
         await NewWeb.currentUser.get().then((user: any) => {
@@ -76,28 +75,6 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
         }
         );
 
-    }
-    public async getTransactionListLength() {
-        try {
-            await NewWeb.lists.getByTitle("HarmForm Transaction").items.select("*")
-                .orderBy("Created", false)
-                .getAll()
-                .then((items: any) => {
-                    const sortedItems: any = items.sort((a: any, b: any) => {
-                        const dateA: any = new Date(a.Created);
-                        const dateB: any = new Date(b.Created);
-                        return dateB - dateA;
-                    });
-                    if (items.length != 0) {
-                        var length = parseInt(sortedItems[0].ID) + 1
-                        RequestID = "SKMCA/F03-04-" + length + ""
-                    } else {
-                        RequestID = "SKMCA/F03-04-1"
-                    }
-                });
-        } catch (err) {
-            console.log("HarmForm Transaction : " + err);
-        }
     }
     public async getDepartments() {
         try {
@@ -165,17 +142,24 @@ export default class NewForm extends React.Component<IDashboardProps, FormState,
             Environment: $("#Environment").val(),
             Technology: $("#Technology").val(),
             Procedures: $("#Procedures").val(),
-            RequestID: RequestID
-        }).then(() => {
-            NewWeb.lists.getByTitle("HarmForm WF History").items.add({
-                Title: "Level1",
-                AssignedToId: {
-                    results: this.state.Approvers
-                },
-                AssignedById: this.state.CurrentUserID,
-                Status: "Pending",
+        }).then((result: any) => {
+            console.log(result)
+            var ID = result.data.ID
+            RequestID = "SKMCA/F03-04-" + ID + ""
+            NewWeb.lists.getByTitle("HarmForm Transaction").items.getById(ID).update({
                 RequestID: RequestID
+            }).then(() => {
+                NewWeb.lists.getByTitle("HarmForm WF History").items.add({
+                    Title: "Level1",
+                    AssignedToId: {
+                        results: this.state.Approvers
+                    },
+                    AssignedById: this.state.CurrentUserID,
+                    Status: "Pending",
+                    RequestID: RequestID
+                })
             })
+
         }).then(() => {
             swal({
                 text: "Submitted successfully!",
